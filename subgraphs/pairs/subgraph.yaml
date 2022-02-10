@@ -1,19 +1,18 @@
 specVersion: 0.0.2
-description: Track Pairs and Tokens on PancakeSwap (v2) protocol
-repository: https://github.com/pancakeswap
+description: Track Pairs and Tokens on LaserSwap (v2) protocol
+repository: https://github.com/laserswap
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
+  - kind: ethereum
     name: Factory
-    network: bsc
+    network: mainnet
     source:
-      address: '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73'
+      address: '0x398250a104fd303FdEf90f5BcC53D21948486c5f'
       abi: Factory
-      startBlock: 6809737
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       file: ./mappings/factory.ts
       entities:
