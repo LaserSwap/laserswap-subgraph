@@ -3,14 +3,14 @@ import { BigDecimal, Address } from "@graphprotocol/graph-ts/index";
 import { Pair, Token, Bundle } from "../generated/schema";
 import { ZERO_BD, factoryContract, ADDRESS_ZERO, ONE_BD } from "./utils";
 
-let WBNB_ADDRESS = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
-let BUSD_WBNB_PAIR = "0x58f876857a02d6762e0101bb5c46a8c1ed44dc16"; // created block 589414
-let USDT_WBNB_PAIR = "0x16b9a82891338f9ba80e2d6970fdda79d1eb0dae"; // created block 648115
+let WTT_ADDRESS = "0x413cEFeA29F2d07B8F2acFA69d92466B9535f717";
+let BUSD_WTT_PAIR = "0xfbaf648a1a0b620b3e15b1c5fe20bcec28f65bf1"; // created block 589414
+let USDT_WTT_PAIR = "0xa192acf29aebd0c94cad757a695812bf34d1e265"; // created block 648115
 
 export function getBnbPriceInUSD(): BigDecimal {
   // fetch eth prices for each stablecoin
-  let usdtPair = Pair.load(USDT_WBNB_PAIR); // usdt is token0
-  let busdPair = Pair.load(BUSD_WBNB_PAIR); // busd is token1
+  let usdtPair = Pair.load(USDT_WTT_PAIR); // usdt is token0
+  let busdPair = Pair.load(BUSD_WTT_PAIR); // busd is token1
 
   if (busdPair !== null && usdtPair !== null) {
     let totalLiquidityBNB = busdPair.reserve0.plus(usdtPair.reserve1);
@@ -32,13 +32,15 @@ export function getBnbPriceInUSD(): BigDecimal {
 
 // token where amounts should contribute to tracked volume and liquidity
 let WHITELIST: string[] = [
-  "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c", // WBNB
-  "0xe9e7cea3dedca5984780bafc599bd69add087d56", // BUSD
-  "0x55d398326f99059ff775485246999027b3197955", // USDT
-  "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // USDC
-  "0x23396cf899ca06c4472205fc903bdb4de249d6fc", // UST
-  "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c", // BTCB
-  "0x2170ed0880ac9a755fd29b2688956bd959f933f8", // WETH
+  "0x413cEFeA29F2d07B8F2acFA69d92466B9535f717", // WTT
+  "0xbeb0131d95ac3f03fd15894d0ade5dbf7451d171", // BUSD
+  "0x4f3c8e20942461e2c3bdd8311ac57b0c222f2b82", // USDT
+  "0x22e89898a04eaf43379beb70bf4e38b1faf8a31e", // USDC
+  "0xfd6ec3e37f112bd30bbd726e7b0e73000cc2b98d", // HUSD
+  "0x18fb0a62f207a2a082ca60aa78f47a1af4985190", // WBTC
+  "0x6576bb918709906dcbfdceae4bb1e6df7c8a1077", // WETH
+  "0x8ef1a1e0671aa44852f4d87105ef482470bb3e69", // WBNB
+  "0x0212b1f75503413b01a98158434c4570fb6e808c", // WHT
 ];
 
 // minimum liquidity for price to get tracked
@@ -49,14 +51,14 @@ let MINIMUM_LIQUIDITY_THRESHOLD_BNB = BigDecimal.fromString("10");
  * @todo update to be derived BNB (add stablecoin estimates)
  **/
 export function findBnbPerToken(token: Token): BigDecimal {
-  if (token.id == WBNB_ADDRESS) {
+  if (token.id == WTT_ADDRESS) {
     return ONE_BD;
   }
   // loop through whitelist and check if paired with any
   for (let i = 0; i < WHITELIST.length; ++i) {
-    let pairAddress = factoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]));
-    if (pairAddress.toHex() != ADDRESS_ZERO) {
-      let pair = Pair.load(pairAddress.toHex());
+    let pairAddress = factoryContract.try_getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]));
+    if (!pairAddress.reverted && pairAddress.value.toHex() != ADDRESS_ZERO) {
+      let pair = Pair.load(pairAddress.value.toHex());
       if (pair.token0 == token.id && pair.reserveBNB.gt(MINIMUM_LIQUIDITY_THRESHOLD_BNB)) {
         let token1 = Token.load(pair.token1);
         return pair.token1Price.times(token1.derivedBNB as BigDecimal); // return token1 per our token * BNB per token 1
