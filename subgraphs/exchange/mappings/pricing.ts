@@ -3,7 +3,7 @@ import { BigDecimal, Address } from "@graphprotocol/graph-ts/index";
 import { Pair, Token, Bundle } from "../generated/schema";
 import { ZERO_BD, factoryContract, ADDRESS_ZERO, ONE_BD } from "./utils";
 
-let WTT_ADDRESS = "0x413cEFeA29F2d07B8F2acFA69d92466B9535f717";
+let WTT_ADDRESS = "0x413cefea29f2d07b8f2acfa69d92466b9535f717";
 let BUSD_WTT_PAIR = "0xfbaf648a1a0b620b3e15b1c5fe20bcec28f65bf1"; // created block 589414
 let USDT_WTT_PAIR = "0xa192acf29aebd0c94cad757a695812bf34d1e265"; // created block 648115
 
@@ -13,18 +13,18 @@ export function getBnbPriceInUSD(): BigDecimal {
   let busdPair = Pair.load(BUSD_WTT_PAIR); // busd is token1
 
   if (busdPair !== null && usdtPair !== null) {
-    let totalLiquidityBNB = busdPair.reserve0.plus(usdtPair.reserve1);
+    let totalLiquidityBNB = busdPair.reserve0.plus(usdtPair.reserve0);
     if (totalLiquidityBNB.notEqual(ZERO_BD)) {
       let busdWeight = busdPair.reserve0.div(totalLiquidityBNB);
-      let usdtWeight = usdtPair.reserve1.div(totalLiquidityBNB);
-      return busdPair.token1Price.times(busdWeight).plus(usdtPair.token0Price.times(usdtWeight));
+      let usdtWeight = usdtPair.reserve0.div(totalLiquidityBNB);
+      return busdPair.token1Price.times(busdWeight).plus(usdtPair.token1Price.times(usdtWeight));
     } else {
       return ZERO_BD;
     }
   } else if (busdPair !== null) {
     return busdPair.token1Price;
   } else if (usdtPair !== null) {
-    return usdtPair.token0Price;
+    return usdtPair.token1Price;
   } else {
     return ZERO_BD;
   }
@@ -32,7 +32,7 @@ export function getBnbPriceInUSD(): BigDecimal {
 
 // token where amounts should contribute to tracked volume and liquidity
 let WHITELIST: string[] = [
-  "0x413cEFeA29F2d07B8F2acFA69d92466B9535f717", // WTT
+  "0x413cefea29f2d07b8f2acfa69d92466b9535f717", // WTT
   "0xbeb0131d95ac3f03fd15894d0ade5dbf7451d171", // BUSD
   "0x4f3c8e20942461e2c3bdd8311ac57b0c222f2b82", // USDT
   "0x22e89898a04eaf43379beb70bf4e38b1faf8a31e", // USDC
@@ -44,7 +44,7 @@ let WHITELIST: string[] = [
 ];
 
 // minimum liquidity for price to get tracked
-let MINIMUM_LIQUIDITY_THRESHOLD_BNB = BigDecimal.fromString("10");
+let MINIMUM_LIQUIDITY_THRESHOLD_BNB = BigDecimal.fromString("1");
 
 /**
  * Search through graph to find derived BNB per token.

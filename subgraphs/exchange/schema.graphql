@@ -182,7 +182,6 @@ type Swap @entity {
 
 type PancakeDayData @entity {
   id: ID! # timestamp rounded to current day by dividing by 86400
-
   date: Int!
 
   dailyVolumeBNB: BigDecimal!
